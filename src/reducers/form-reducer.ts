@@ -1,4 +1,5 @@
-import {   PlanFrequency, PlanType, AddonType, AddonName, PersonalInfoType, PersonalInfo } from 'types';
+import { addons } from 'data';
+import { PlanFrequency, PlanOption, PersonalInfoType, PersonalInfo, Addon } from 'types';
 
 export type FormActions =
   | {
@@ -7,55 +8,49 @@ export type FormActions =
   | {
       type: 'prev-step';
     }
-
-    | {
+  | {
       type: 'set-personal-info';
-      payload: {name : PersonalInfo, value : string}
+      payload: { name: PersonalInfo; value: string };
     }
   | {
       type: 'set-plan';
-      payload: PlanType;
+      payload: PlanOption;
     }
   | {
       type: 'set-planFrecuency';
     }
   | {
       type: 'set-addons';
-      payload: {name : AddonName,checked : boolean}
+      payload: { id: Addon['id']; checked: boolean };
     }
   | {
-    type : 'check-errors'
-  }
-    | {
+      type: 'check-errors';
+    }
+  | {
       type: 'confirm';
     };
 export type FormState = {
   step: number;
-  plan: PlanType;
+  plan: PlanOption;
   planFrecuency: PlanFrequency;
-  addons : AddonType,
-  confirmed : boolean,
-  personalInfo : PersonalInfoType,
-  errors: PersonalInfoType,
+  confirmed: boolean;
+  personalInfo: PersonalInfoType;
+  errors: PersonalInfoType;
+  addons: Addon[];
 };
 export const initialState: FormState = {
   step: 1,
-  plan: PlanType.Arcade,
+  plan: PlanOption.Arcade,
   planFrecuency: PlanFrequency.Yearly,
-  personalInfo : {
+  personalInfo: {
     name: '',
     email: '',
-    phone: ''
+    phone: '',
   },
-  addons :{
-    OnlineService : false,
-    LargerStorage : false,
-    CustomizableProfile : false
-  },
-  confirmed : false,
-  errors : { name: '',
-    email: '',
-    phone: ''}
+
+  confirmed: false,
+  errors: { name: '', email: '', phone: '' },
+  addons: addons,
 };
 export function formReducer(state = initialState, action: FormActions): FormState {
   if (action.type === 'next-step') {
@@ -68,19 +63,19 @@ export function formReducer(state = initialState, action: FormActions): FormStat
   if (action.type === 'check-errors') {
     // Limpiar los errores
     const newErrors = { ...state.errors };
-    Object.keys(newErrors).forEach(key => {
+    Object.keys(newErrors).forEach((key) => {
       newErrors[key as PersonalInfo] = '';
     });
 
     // Check for empty fields and set errors
     Object.entries(state.personalInfo).forEach(([key, value]) => {
-      if (value === "") {
+      if (value === '') {
         newErrors[key as PersonalInfo] = `The field ${key} is required`;
       }
     });
 
     // Check if there are any errors
-    const hasErrors = Object.values(newErrors).some(value => value !== "");
+    const hasErrors = Object.values(newErrors).some((value) => value !== '');
 
     return {
       ...state,
@@ -95,16 +90,15 @@ export function formReducer(state = initialState, action: FormActions): FormStat
       step: state.step - 1,
     };
   }
-  if(action.type === 'set-personal-info'){
-    const {name, value} = action.payload
-    const personalInfo = {...state.personalInfo,[name] : value}
-    
+  if (action.type === 'set-personal-info') {
+    const { name, value } = action.payload;
+    const personalInfo = { ...state.personalInfo, [name]: value };
+
     return {
       ...state,
       personalInfo,
-    }
+    };
   }
-  
 
   if (action.type === 'set-plan') {
     return {
@@ -122,21 +116,21 @@ export function formReducer(state = initialState, action: FormActions): FormStat
     };
   }
   if (action.type === 'set-addons') {
-    const addons = {
-      ...state.addons,
-      [action.payload.name] : action.payload.checked
-    }
+    const selectedAddon = addons.filter((addon) => addon.id === action.payload.id)[0];
+    const updatedAddons: Addon[] = state.addons.map((addon) =>
+      addon.id === action.payload.id ? { ...selectedAddon, checked: !addon.checked } : addon,
+    );
     return {
       ...state,
-      addons
+      addons: updatedAddons,
     };
   }
 
-  if(action.type === 'confirm'){
+  if (action.type === 'confirm') {
     return {
       ...state,
-      confirmed : true
-    }
+      confirmed: true,
+    };
   }
   return state;
 }

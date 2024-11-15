@@ -1,33 +1,28 @@
-export enum PlanType {
+export enum PlanOption {
   Arcade = 'arcade',
   Advanced = 'advanced',
   Pro = 'pro',
 }
 
 export enum PlanFrequency {
-  Yearly = 0,
-  Monthly = 1,
+  Yearly = 'Yearly',
+  Monthly = 'Monthly',
 }
-
-// export type SelectedAddons = {
-//   onlineService: boolean;
-//   largerStorage: boolean;
-//   customizableProfile: boolean;
-// };
-
-// export enum AddonType {
-//   OnlineService = 'onlineService',
-//   LargerStorage = 'largerStorage',
-//   CustomizableProfile = 'customizableProfile',
-// }
-export type AddonName = 'OnlineService' | 'LargerStorage' | 'CustomizableProfile';
-export type AddonType = Record<AddonName, boolean>;
-
-// export type PersonalInfo = {
-//   name: string,
-//   email: string,
-//   phone: string,
-// }
+type Price = { [K in keyof typeof PlanFrequency]: number };
+export type Plan = {
+  id: PlanOption;
+  img: string;
+  price: Price;
+};
+export type Addon = {
+  id: string;
+  title: string;
+  content: string;
+  price: Price;
+  checked: boolean;
+};
+export type AddonFeature = 'OnlineService' | 'LargerStorage' | 'CustomizableProfile';
+export type AddonType = Record<AddonFeature, boolean>;
 
 export type PersonalInfo = 'name' | 'email' | 'phone';
 export type PersonalInfoType = Record<PersonalInfo, string>;

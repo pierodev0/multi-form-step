@@ -1,20 +1,18 @@
-import { FormActions } from 'reducers/form-reducer';
-import { AddonName } from 'types';
+import useFormContext from 'hooks/useFormContext';
+import { PlanFrequency } from 'types';
+import type { Addon } from 'types';
 
 interface AddonProps {
-  title: string;
-  content: string;
-  price: number;
-  dispatch: React.Dispatch<FormActions>;
-  id: AddonName;
   isChecked: boolean;
+  addon: Addon;
 }
 
-function Addon({ title, content, price, dispatch, id, isChecked }: AddonProps) {
+function Addon({ addon: { title, content, price, id }, isChecked }: AddonProps) {
+  const { state, dispatch } = useFormContext();
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     dispatch({
       type: 'set-addons',
-      payload: { name: e.target.name as AddonName, checked: e.target.checked },
+      payload: { id, checked: e.target.checked },
     });
   }
   return (
@@ -33,7 +31,11 @@ function Addon({ title, content, price, dispatch, id, isChecked }: AddonProps) {
           <p className='font-bold text-indigo-900'>{title}</p>
           <p className='text-gray-500'>{content}</p>
         </div>
-        <p className='text-indigo-600'> +${price}/mo</p>
+        <p className='font-medium text-indigo-600'>
+          {' '}
+          +${price[state.planFrecuency]}/
+          {state.planFrecuency === PlanFrequency.Monthly ? 'mo' : 'yr'}
+        </p>
       </div>
     </label>
   );

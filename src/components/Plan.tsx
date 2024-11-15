@@ -1,21 +1,19 @@
-import { FormActions } from 'reducers/form-reducer';
-import { PlanType } from 'types';
-
+import useFormContext from 'hooks/useFormContext';
+import { PlanFrequency, PlanOption } from 'types';
+import type { Plan } from 'types';
 interface PlanProps {
-  id: string;
-  img: string;
-  price: number;
+  plan: Plan;
   isChecked: boolean;
-  dispatch: React.Dispatch<FormActions>;
 }
-function Plan({ id, img, price, isChecked, dispatch }: PlanProps) {
+function Plan({ plan: { id, img, price }, isChecked }: PlanProps) {
+  const { state, dispatch } = useFormContext();
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const playtype = e.target.value as PlanType;
+    const playtype = e.target.value as PlanOption;
     dispatch({ type: 'set-plan', payload: playtype });
   }
   return (
     <label
-      className={`space-y-4 rounded-md p-3 outline outline-1 outline-gray-300  hover:cursor-pointer ${isChecked ? 'bg-blue-50 outline-blue-300' : ''}`}
+      className={`space-y-8 rounded-md p-3 outline outline-1 outline-gray-300 hover:cursor-pointer ${isChecked ? 'bg-blue-50 outline-blue-300' : ''}`}
       htmlFor={id}
     >
       <div>
@@ -26,8 +24,15 @@ function Plan({ id, img, price, isChecked, dispatch }: PlanProps) {
         />
       </div>
       <div>
-        <p className='text-sm font-bold capitalize text-blue-800'>{id}</p>
-        <p className='text-xs text-gray-500'>${price}/mo</p>
+        <p className='text-lg font-bold capitalize text-blue-900'>{id}</p>
+        <p className='text-normal text-gray-500'>
+          ${price[state.planFrecuency]}/
+          {state.planFrecuency === PlanFrequency.Monthly ? 'mo' : 'yr'}
+        </p>
+
+        {state.planFrecuency === PlanFrequency.Monthly && (
+          <p className='text-sm font-bold text-blue-900'>2 months Free</p>
+        )}
       </div>
       <input
         type='radio'

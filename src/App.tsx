@@ -1,16 +1,25 @@
 import Addon from 'components/Addon';
 import Error from 'components/Error';
 import Plan from 'components/Plan';
+import SelectedAddon from 'components/SelectedAddon';
 import Step from 'components/Step';
 import Button from 'components/ui/Button';
 import Input from 'components/ui/Input';
 import Switch from 'components/ui/Switch';
+import { plans } from 'data';
 import useFormContext from 'hooks/useFormContext';
-import { PlanFrequency, PlanType } from 'types';
+import { PlanFrequency } from 'types';
 
 function App() {
-  const { state, dispatch } = useFormContext();
-
+  const { state, dispatch, frequencyAbbreviation } = useFormContext();
+  const isMontly = state.planFrecuency === PlanFrequency.Monthly;
+  const planPrice = plans.filter((plan) => plan.id === state.plan)[0].price[state.planFrecuency];
+  const selectedAddons = state.addons.filter((addon) => addon.checked);
+  const selectedAddonsPrice = selectedAddons.reduce(
+    (total, addon) => addon.price[state.planFrecuency] + total,
+    0,
+  );
+  const totalPrice = planPrice + selectedAddonsPrice;
   return (
     <>
       <main className=''>
@@ -49,6 +58,7 @@ function App() {
                     dispatch={dispatch}
                     name='name'
                     value={state.personalInfo.name}
+                    placeholder='e.g Stephen King'
                   />
                 </div>
                 <div className='space-y-2'>
@@ -61,6 +71,7 @@ function App() {
                     dispatch={dispatch}
                     name={'email'}
                     value={state.personalInfo.email}
+                    placeholder='e.g. stephenking@lorem.com '
                   />
                 </div>
                 <div className='space-y-2'>
@@ -73,6 +84,7 @@ function App() {
                     dispatch={dispatch}
                     name={'phone'}
                     value={state.personalInfo.phone}
+                    placeholder='e.g + 1 234 567 890'
                   />
                 </div>
               </div>
@@ -85,27 +97,13 @@ function App() {
                   You have the option of monthly or yearly billing.
                 </h2>
                 <fieldset className='grid grid-cols-3 gap-2'>
-                  <Plan
-                    id={PlanType.Arcade}
-                    img='/images/icon-arcade.svg'
-                    price={9}
-                    dispatch={dispatch}
-                    isChecked={state.plan === PlanType.Arcade}
-                  />
-                  <Plan
-                    id={PlanType.Advanced}
-                    img='/images/icon-advanced.svg'
-                    dispatch={dispatch}
-                    price={12}
-                    isChecked={state.plan === PlanType.Advanced}
-                  />
-                  <Plan
-                    id={PlanType.Pro}
-                    img='/images/icon-pro.svg'
-                    dispatch={dispatch}
-                    price={15}
-                    isChecked={state.plan === PlanType.Pro}
-                  />
+                  {plans.map((plan) => (
+                    <Plan
+                      key={plan.id}
+                      plan={plan}
+                      isChecked={state.plan === plan.id}
+                    />
+                  ))}
                 </fieldset>
                 <div className='flex justify-center gap-2 rounded-md bg-blue-50 p-2'>
                   <p
@@ -133,47 +131,14 @@ function App() {
                   Add-ons help enhance your gaming experience.
                 </h2>
                 <fieldset className='flex flex-col gap-2'>
-                  <Addon
-                    title='Online service'
-                    content='Access to multiplayer games'
-                    price={1}
-                    dispatch={dispatch}
-                    id={'OnlineService'}
-                    isChecked={state.addons.OnlineService}
-                  />
-                  <Addon
-                    title='Larger storage'
-                    content='Extra 1TB of cloud save storage'
-                    price={2}
-                    dispatch={dispatch}
-                    id={'LargerStorage'}
-                    isChecked={state.addons.LargerStorage}
-                  />
-                  <Addon
-                    title='Customizable profile'
-                    content='Custom theme on your profile'
-                    price={2}
-                    dispatch={dispatch}
-                    id={'CustomizableProfile'}
-                    isChecked={state.addons.CustomizableProfile}
-                  />
+                  {state.addons.map((addon) => (
+                    <Addon
+                      key={addon.id}
+                      isChecked={addon.checked}
+                      addon={addon}
+                    />
+                  ))}
                 </fieldset>
-                <div className='flex justify-center gap-2 rounded-md bg-blue-50 p-2'>
-                  <p
-                    className={`text-sm font-bold ${state.planFrecuency === PlanFrequency.Yearly ? 'text-blue-900' : 'text-gray-400'}`}
-                  >
-                    Yearly
-                  </p>
-                  <Switch
-                    dispatch={dispatch}
-                    isChecked={state.planFrecuency === PlanFrequency.Monthly}
-                  />
-                  <p
-                    className={`text-sm font-bold ${state.planFrecuency === PlanFrequency.Monthly ? 'text-blue-900' : 'text-gray-400'}`}
-                  >
-                    Montly
-                  </p>
-                </div>
               </div>
             )}
             {state.step === 4 && !state.confirmed && (
@@ -182,51 +147,44 @@ function App() {
                 <h2 className='text-lg text-gray-500'>
                   Double-check everything looks OK before confirming.
                 </h2>
-                <section className='space-y-5 rounded-md bg-blue-50 p-5'>
+                <section className='space-y-5 rounded-md bg-blue-50/80 p-5'>
                   <div className='flex items-center gap-2 pt-0'>
                     <div className='flex-1'>
-                      <p className='font-bold capitalize text-blue-950'>{state.plan} (Montly)</p>
-                      <p className='text-sm font-medium text-gray-500 underline'>Change</p>
+                      <p className='font-bold capitalize text-blue-950'>
+                        {state.plan} ({isMontly ? 'Montly' : 'Yearly'})
+                      </p>
+                      <p
+                        className='text-sm font-medium text-gray-500 underline hover:cursor-pointer hover:text-indigo-500'
+                        onClick={() => dispatch({ type: 'set-planFrecuency' })}
+                      >
+                        Change
+                      </p>
                     </div>
-                    <p className='font-bold text-blue-950'>$9/mo</p>
+                    <p className='font-bold text-blue-950'>
+                      ${planPrice}/{frequencyAbbreviation}
+                    </p>
                   </div>
-                  {/* Comprobar si algun propiedad es verdadera */}
-                  {Object.values(state.addons).some((value) => value) && (
+                  {selectedAddons.length !== 0 && (
                     <>
-                      <hr className='border-gra-500 border' />
-                      <div>
-                        {state.addons.OnlineService && (
-                          <div className='flex py-2 first:pt-0 last:pb-0'>
-                            <p className='flex-1 text-sm font-medium text-gray-500'>
-                              Online service
-                            </p>
-                            <p className='text-sm font-medium text-blue-800'>+$1/mo</p>
-                          </div>
-                        )}
-
-                        {state.addons.LargerStorage && (
-                          <div className='flex py-2 first:pt-0 last:pb-0'>
-                            <p className='flex-1 text-sm font-medium text-gray-500'>
-                              Large Storage
-                            </p>
-                            <p className='text-sm font-medium text-blue-800'>+$2/mo</p>
-                          </div>
-                        )}
-                        {state.addons.CustomizableProfile && (
-                          <div className='flex py-2 first:pt-0 last:pb-0'>
-                            <p className='flex-1 text-sm font-medium text-gray-500'>
-                              Custommizable Profile
-                            </p>
-                            <p className='text-sm font-medium text-blue-800'>+$2/mo</p>
-                          </div>
-                        )}
+                      <hr className='border-1 border border-gray-200' />
+                      <div className=''>
+                        {selectedAddons.map((addon) => (
+                          <SelectedAddon
+                            addon={addon}
+                            key={addon.id}
+                          />
+                        ))}
                       </div>
                     </>
                   )}
                 </section>
                 <div className='flex justify-between px-5'>
-                  <p className='text-sm font-medium text-gray-500'>Total per month</p>
-                  <p className='text-xl font-bold text-indigo-600'>+$12/mo</p>
+                  <p className='text-sm font-medium text-gray-400'>
+                    Total (per {isMontly ? 'month' : 'year'})
+                  </p>
+                  <p className='text-xl font-bold text-indigo-600'>
+                    +${totalPrice}/{frequencyAbbreviation}
+                  </p>
                 </div>
               </div>
             )}
